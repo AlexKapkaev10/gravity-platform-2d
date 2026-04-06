@@ -6,22 +6,15 @@ namespace Project.Gameplay
     {
         [SerializeField] private Platform _platform;
         [SerializeField] private Transform _transform;
-        
-        [SerializeField] private float _moveSpeed = 3f;
-        [SerializeField] private float _jumpForce = 7f;
-        [SerializeField] private float _gravity = 15f;
-        [SerializeField] private float _rotationSpeed = 720f;
+        [SerializeField] private InputService _inputService;
+        [SerializeField] private PlatformWalkerConfig _config;
 
         private PlatformSide _currentSide = PlatformSide.Top;
         private float _offset;
         private float _height;
         private float _verticalVelocity;
         private float _targetAngle;
-
         private bool _isGrounded = true;
-
-        public float MoveInput = 0f;
-        public bool JumpInput = false;
 
         private void Start()
         {
@@ -30,43 +23,23 @@ namespace Project.Gameplay
 
         private void Update()
         {
-            ReadInput();
             HandleJump();
             HandleMovement();
             HandleSideSwitch();
             ApplyTransform();
-            ResetInput();
-        }
-
-        private void ReadInput()
-        {
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-            {
-                MoveInput = -1f;
-            }
-
-            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-            {
-                MoveInput = 1f;
-            }
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                JumpInput = true;
-            }
         }
 
         private void HandleJump()
         {
-            if (_isGrounded && JumpInput)
+            if (_isGrounded && _inputService.JumpInput)
             {
-                _verticalVelocity = _jumpForce;
+                _verticalVelocity = _config.JumpForce;
                 _isGrounded = false;
             }
 
             if (!_isGrounded)
             {
-                _verticalVelocity -= _gravity * Time.deltaTime;
+                _verticalVelocity -= _config.Gravity * Time.deltaTime;
                 _height += _verticalVelocity * Time.deltaTime;
 
                 if (_height <= 0f)
@@ -80,7 +53,7 @@ namespace Project.Gameplay
 
         private void HandleMovement()
         {
-            _offset += MoveInput * _moveSpeed * Time.deltaTime;
+            _offset += _inputService.MoveInput * _config.MoveSpeed * Time.deltaTime;
         }
 
         private void HandleSideSwitch()
@@ -136,7 +109,9 @@ namespace Project.Gameplay
             );
 
             float currentAngle = _transform.eulerAngles.z;
-            float newAngle = Mathf.MoveTowardsAngle(currentAngle, _targetAngle, _rotationSpeed * Time.deltaTime);
+            float newAngle = Mathf.MoveTowardsAngle(currentAngle, 
+                _targetAngle, 
+                _config.RotationSpeed * Time.deltaTime);
             _transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
         }
 
@@ -148,10 +123,5 @@ namespace Project.Gameplay
             ApplyTransform();
         }
 
-        private void ResetInput()
-        {
-            MoveInput = 0f;
-            JumpInput = false;
-        }
     }
 }
