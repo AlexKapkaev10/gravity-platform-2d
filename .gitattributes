@@ -1,0 +1,11 @@
+*.asset linguist-generated=true
+*.prefab linguist-generated=true
+*.unity linguist-generated=true
+*.mat linguist-generated=true
+*.meta linguist-generated=true
+*.anim linguist-generated=true
+*.controller linguist-generated=true
+ProjectSettings/* linguist-generated=true
+Packages/packages-lock.json linguist-generated=true
+*.wlt linguist-generated=true
+Assets/TutorialInfo/** linguist-generated=true
