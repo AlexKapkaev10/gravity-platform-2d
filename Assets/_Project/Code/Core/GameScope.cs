@@ -1,4 +1,4 @@
-using Project.Gameplay;
+using Project.Services;
 using VContainer;
 using VContainer.Unity;
 
@@ -11,7 +11,7 @@ namespace Project.Core
             builder
                 .Register<InputService>(Lifetime.Scoped)
                 .As<IInputService>()
-                .As<ITickable>();
+                .As<IInitializable>();
         }
     }
 }
