@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 namespace Project.Gameplay
 {
@@ -6,15 +7,22 @@ namespace Project.Gameplay
     {
         [SerializeField] private Platform _platform;
         [SerializeField] private Transform _transform;
-        [SerializeField] private InputService _inputService;
         [SerializeField] private PlatformWalkerConfig _config;
 
         private PlatformSide _currentSide = PlatformSide.Top;
+        private IInputService _inputService;
+        
         private float _offset;
         private float _height;
         private float _verticalVelocity;
         private float _targetAngle;
         private bool _isGrounded = true;
+
+        [Inject]
+        private void Construct(IInputService inputService)
+        {
+            _inputService = inputService;
+        }
 
         private void Start()
         {
@@ -107,11 +115,12 @@ namespace Project.Gameplay
                 _offset,
                 _height
             );
-
-            float currentAngle = _transform.eulerAngles.z;
-            float newAngle = Mathf.MoveTowardsAngle(currentAngle, 
-                _targetAngle, 
-                _config.RotationSpeed * Time.deltaTime);
+            
+            var newAngle = Mathf
+                .MoveTowardsAngle(_transform.eulerAngles.z, 
+                    _targetAngle, 
+                    _config.RotationSpeed * Time.deltaTime);
+            
             _transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
         }
 
