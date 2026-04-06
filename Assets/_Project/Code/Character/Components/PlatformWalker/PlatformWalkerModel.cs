@@ -1,44 +1,48 @@
 using Project.Services;
 using UnityEngine;
-using VContainer;
 
 namespace Project.Gameplay
 {
-    public class PlatformWalker : MonoBehaviour
+    public class PlatformWalkerModel
     {
-        [SerializeField] private Platform _platform;
-        [SerializeField] private Transform _transform;
-        [SerializeField] private PlatformWalkerConfig _config;
+        private readonly Platform _platform;
+        private readonly PlatformWalkerConfig _config;
+        private readonly IInputService _inputService;
 
         private PlatformSide _currentSide = PlatformSide.Top;
-        private IInputService _inputService;
-        
         private float _offset;
         private float _height;
         private float _verticalVelocity;
         private float _targetAngle;
         private bool _isGrounded = true;
 
-        [Inject]
-        private void Construct(IInputService inputService)
+        public Vector2 Position { get; private set; }
+        public float TargetAngle => _targetAngle;
+
+        public PlatformWalkerModel(Platform platform, PlatformWalkerConfig config, IInputService inputService)
         {
+            _platform = platform;
+            _config = config;
             _inputService = inputService;
         }
 
-        private void Start()
+        public void Tick(float deltaTime)
         {
-            SnapToSurface();
-        }
-
-        private void Update()
-        {
-            HandleJump();
-            HandleMovement();
+            HandleJump(deltaTime);
+            HandleMovement(deltaTime);
             HandleSideSwitch();
-            ApplyTransform();
+            UpdatePosition();
         }
 
-        private void HandleJump()
+        public void SnapToSurface()
+        {
+            _height = 0f;
+            _isGrounded = true;
+            UpdateTargetAngle();
+            UpdatePosition();
+        }
+
+        private void HandleJump(float deltaTime)
         {
             if (_isGrounded && _inputService.JumpInput)
             {
@@ -48,8 +52,8 @@ namespace Project.Gameplay
 
             if (!_isGrounded)
             {
-                _verticalVelocity -= _config.Gravity * Time.deltaTime;
-                _height += _verticalVelocity * Time.deltaTime;
+                _verticalVelocity -= _config.Gravity * deltaTime;
+                _height += _verticalVelocity * deltaTime;
 
                 if (_height <= 0f)
                 {
@@ -60,9 +64,9 @@ namespace Project.Gameplay
             }
         }
 
-        private void HandleMovement()
+        private void HandleMovement(float deltaTime)
         {
-            _offset += _inputService.MoveInput * _config.MoveSpeed * Time.deltaTime;
+            _offset += _inputService.MoveInput * _config.MoveSpeed * deltaTime;
         }
 
         private void HandleSideSwitch()
@@ -109,29 +113,9 @@ namespace Project.Gameplay
             }
         }
 
-        private void ApplyTransform()
+        private void UpdatePosition()
         {
-            _transform.position = _platform.GetWorldPosition(
-                _currentSide,
-                _offset,
-                _height
-            );
-            
-            var newAngle = Mathf
-                .MoveTowardsAngle(_transform.eulerAngles.z, 
-                    _targetAngle, 
-                    _config.RotationSpeed * Time.deltaTime);
-            
-            _transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
+            Position = _platform.GetWorldPosition(_currentSide, _offset, _height);
         }
-
-        private void SnapToSurface()
-        {
-            _height = 0f;
-            _isGrounded = true;
-            UpdateTargetAngle();
-            ApplyTransform();
-        }
-
     }
 }
